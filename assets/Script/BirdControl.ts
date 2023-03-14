@@ -1,4 +1,4 @@
-import { _decorator, Component, input, Input, Vec3, find, director, Sprite, Label, Button, AudioClip, Animation, SpriteFrame, AnimationClip, PageView, Slider, AudioSource, EventKeyboard, KeyCode } from 'cc';
+import { _decorator, Component, input, Input, Vec3, find, director, Sprite, Label, Button, AudioClip, Animation, SpriteFrame, AnimationClip, PageView, Slider, AudioSource, EventKeyboard, KeyCode, tween } from 'cc';
 import { Pools } from './Pools';
 const { ccclass, property } = _decorator; 
 @ccclass('BirdControl') 
@@ -56,6 +56,7 @@ export class BirdControl extends Component {
     pipe01: Sprite;
     @property({type: Sprite})
     pipe02: Sprite;
+    coll: boolean = true;
 
     start() {
         director.pause();
@@ -68,10 +69,12 @@ export class BirdControl extends Component {
     onLoad(){ 
         input.on(Input.EventType.TOUCH_START, this.onTouchStart, this);
         input.on(Input.EventType.KEY_DOWN, this.onTouchSpace, this);
+        input.on(Input.EventType.KEY_DOWN, this.onKeyDash, this);
     } 
     onDestroy()
     { 
-        input.off(Input.EventType.KEY_DOWN, this.onTouchSpace, this); 
+        input.off(Input.EventType.KEY_DOWN, this.onTouchSpace, this);
+        input.off(Input.EventType.KEY_DOWN, this.onKeyDash, this);  
     }
     updateScore() {
         this.score += 1;
@@ -101,26 +104,45 @@ export class BirdControl extends Component {
         let allPipe2PosX = allPipe2.node.position.x;
 
         //Khi va chạm và tính điểm + audio
-        if ((((posX >= (allPipePosX - 90)) && (posX <= (allPipePosX + 60)) && posY > (allPipePosY + 60)) || ((posX >= (allPipePosX - 90)) && (posX <= (allPipePosX + 60)) && posY < (allPipePosY - 70))) ||
-        ((posX >= (allPipe2PosX - 90)) && (posX <= (allPipe2PosX + 60)) && posY > (allPipe2PosY + 60)) || ((posX >= (allPipe2PosX - 90)) && (posX <= (allPipe2PosX + 60)) && posY < (allPipe2PosY - 70))) 
-        {
-            this.scores.push(this.score);
-            localStorage.setItem('scores', JSON.stringify(this.scores));
-            let bestScore = Math.max(...this.scores);
-            this.bestScore.string = 'best score: ' +bestScore;
-            director.stopAnimation();
-            this.gameOver.node.active = true;
-            this.audioDie.play();
-        }
-        else if((posX > (allPipePosX + 61) && posX < (allPipePosX + 66)) || (posX > (allPipe2PosX + 61) && posX < (allPipe2PosX + 66)))
-        {
-            this.updateScore();
-            this.scorelable.string = 'score: '+this.score;
-            this.audioScore.play();
-        } else {
-
+        
+        if(this.coll == true){
+            if ((((posX >= (allPipePosX - 90)) && (posX <= (allPipePosX + 60)) && posY > (allPipePosY + 60)) || ((posX >= (allPipePosX - 90)) && (posX <= (allPipePosX + 60)) && posY < (allPipePosY - 70))) ||
+            ((posX >= (allPipe2PosX - 90)) && (posX <= (allPipe2PosX + 60)) && posY > (allPipe2PosY + 60)) || ((posX >= (allPipe2PosX - 90)) && (posX <= (allPipe2PosX + 60)) && posY < (allPipe2PosY - 70))) 
+            {
+                this.scores.push(this.score);
+                localStorage.setItem('scores', JSON.stringify(this.scores));
+                let bestScore = Math.max(...this.scores);
+                this.bestScore.string = 'best score: ' +bestScore;
+                director.stopAnimation();
+                this.gameOver.node.active = true;
+                this.audioDie.play();
+            }
+            else if((posX > (allPipePosX + 61) && posX < (allPipePosX + 66)) || (posX > (allPipe2PosX + 61) && posX < (allPipe2PosX + 66)))
+            {
+                this.updateScore();
+                this.scorelable.string = 'score: '+this.score;
+                this.audioScore.play();
+            } 
         }
     }
+    onKeyDash(event: EventKeyboard) {
+        switch(event.keyCode) {
+            case KeyCode.KEY_A:
+                this.coll = false;
+                tween(this.node)
+                .to(0.2, { position: new Vec3(this.node.position.x + 150, this.node.position.y, 0)})
+                .to(0.4, { position: new Vec3(-269.27, this.node.position.y, 0)})
+                .call(() => {   
+                    console.log('This is a callback');
+                })
+                .start()
+                this.scheduleOnce(function(){
+                    this.coll = true;
+                    console.log(this.coll);
+                }, 2) 
+        }
+    }
+
     onTouchStart(){
         this.speed = 3;
         this.audioFly.play();

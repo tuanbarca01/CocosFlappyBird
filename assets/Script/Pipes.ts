@@ -1,4 +1,4 @@
-import { _decorator, Component, Vec3, EventKeyboard, KeyCode, input, Input, randomRange } from 'cc';
+import { _decorator, Component, Vec3, EventKeyboard, KeyCode, input, Input, randomRange, tween } from 'cc';
 import { BirdControl } from './BirdControl'; 
 const { ccclass, property } = _decorator;
 @ccclass('Pipes') 
@@ -10,9 +10,9 @@ export class Pipes extends Component {
         input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
     }
 
-    onDestroy () {
-        input.off(Input.EventType.KEY_DOWN, this.onKeyDown, this);
-    }
+    // onDestroy () {
+    //     input.off(Input.EventType.KEY_DOWN, this.onKeyDown, this);
+    // }
     onKeyDown (event: EventKeyboard) { //Điều khiển thời giann
         switch(event.keyCode) {
             case KeyCode.ARROW_DOWN:
@@ -31,7 +31,8 @@ export class Pipes extends Component {
     //         case KeyCode.ARROW_DOWN:
     //             break;
     //     }
-    // } 
+    // }
+    
     update(delta: number){ 
         let pipeX = this.node.position.x; 
         let pipeY = this.node.position.y; 
